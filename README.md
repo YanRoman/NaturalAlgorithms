@@ -1,5 +1,6 @@
 # Natural algorithms implemented in Java
-+ Bee Hive
-+ Ant Colony
-+ Swarm
 + Annealing
++ Ant Colony
++ Bee Hive
++ Swarm
+
