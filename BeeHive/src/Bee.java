@@ -1,6 +1,4 @@
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.Random;
 
 @Data
@@ -18,9 +16,6 @@ public class Bee implements Comparable<Bee> {
     public Bee(Dot dot){
         x = random.nextDouble(dot.getX().get(1) - dot.getX().get(0) + 1) + dot.getX().get(0);
         y = random.nextDouble(dot.getY().get(1) - dot.getY().get(0) + 1) + dot.getY().get(0);
-
-       /* x = Math.random() * (dot.getX().get(1) + dot.getX().get(0)) - dot.getX().get(0);
-        y = Math.random() * (dot.getY().get(1) + dot.getY().get(0)) - dot.getY().get(0);*/
         funcValue = func();
     }
 
