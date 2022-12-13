@@ -1,59 +1,42 @@
 import java.util.Arrays;
-import java.util.Vector;
 
 public class Fish {
-    private Vector<Double> position;
-    private Vector<Double>[] swimStatePos = new Vector[4];
+    private Point [] position = new Point[4];
     private double weight;
     private double individualStep;
     private double difFunc;
+    private double lowerBoundPoint, higherBoundPoint;
 
     public Fish(double maxWeight, double lowerBoundPoint, double higherBoundPoint, double individualStepStart){
+        this.lowerBoundPoint = lowerBoundPoint;
+        this.higherBoundPoint = higherBoundPoint;
         individualStep = individualStepStart;
         weight = maxWeight/2;
-        position = new Vector<>();
-
-        for (int i = 0; i < 2; i++){
-            position.add(lowerBoundPoint + Math.random() * (higherBoundPoint - lowerBoundPoint + 1));
-        }
-        swimStatePos[0] = position;
+        position[0] = new Point(lowerBoundPoint, higherBoundPoint);
     }
 
-    public void move(double lowerBoundPoint, double higherBoundPoint){
+    public void move(){
         double rand = (Math.random() * 2 - 1) * individualStep;
-        if (func(position.get(0) + rand, position.get(1) + rand) < func(position.get(0), position.get(1)) &&
-        position.get(0) + rand >= lowerBoundPoint && position.get(0) + rand <= higherBoundPoint &&
-                position.get(1) + rand >= lowerBoundPoint && position.get(1) + rand <= higherBoundPoint){
 
+        if (func(position[0].sumDoublePoint(rand)) < func(position[0]) &&
+                position[0].sumDoublePoint(rand).inRange(lowerBoundPoint, higherBoundPoint)){
 
-            difFunc = Math.abs(func(position.get(0), position.get(1)) -
-                    func(position.get(0) + rand, position.get(1) + rand));
-            Vector<Double> newPos = new Vector<>();
-            newPos.add(position.get(0) + rand);
-            newPos.add(position.get(1) + rand);
-            swimStatePos[1] =  newPos;
+            difFunc = Math.abs(func(position[0]) - func(position[0].sumDoublePoint(rand)));
+            position[1] = position[0].sumDoublePoint(rand);
         } else {
-            swimStatePos[1] = position;
+            position[1] = position[0];
         }
     }
 
-    public double func(double x, double y){
-        return (Math.pow(x, 2) + Math.pow(y, 2));
+    public double func(Point point){
+        return (Math.pow(point.getX(), 2) + Math.pow(point.getY(), 2));
     }
 
-    public Vector[] getSwimStatePos() {
-        return swimStatePos;
-    }
-
-    public void setSwimStatePos(Vector[] swimStatePos) {
-        this.swimStatePos = swimStatePos;
-    }
-
-    public Vector<Double> getPosition() {
+    public Point[] getPosition() {
         return position;
     }
 
-    public void setPosition(Vector<Double> position) {
+    public void setPosition(Point[] position) {
         this.position = position;
     }
 
@@ -61,30 +44,26 @@ public class Fish {
         return weight;
     }
 
-    public double getIndividualStep() {
-        return individualStep;
-    }
-
-    public double getDifFunc() {
-        return difFunc;
-    }
     public void setWeight(double weight) {
         this.weight = weight;
+    }
+
+    public double getIndividualStep() {
+        return individualStep;
     }
 
     public void setIndividualStep(double individualStep) {
         this.individualStep = individualStep;
     }
 
-    public void setDifFunc(double difFunc) {
-        this.difFunc = difFunc;
+    public double getDifFunc() {
+        return difFunc;
     }
 
     @Override
     public String toString() {
         return "Fish{" +
-                "position=" + position +
-                ", swimStatePos=" + Arrays.toString(swimStatePos) +
+                "position=" + Arrays.toString(position) +
                 ", weight=" + weight +
                 ", individualStep=" + individualStep +
                 ", difFunc=" + difFunc +

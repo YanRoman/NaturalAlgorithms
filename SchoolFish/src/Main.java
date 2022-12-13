@@ -11,7 +11,7 @@ public class Main {
         double individualStepFinish = 0.1;
         Aquarium aquarium = new Aquarium(populationSize, lowerBoundPoint, higherBoundPoint, maxWeight,
                                          individualStepStart, individualStepFinish);
-        aquarium.play();
+        aquarium.play(100);
 
         List<Fish> population = aquarium.getPopulation();
 

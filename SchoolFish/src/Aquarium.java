@@ -1,31 +1,31 @@
+
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 public class Aquarium {
     private final List<Fish> population = new ArrayList<>();
     private final double individualStepStart;
     private final double individualStepFinish;
-    private final double lowerBoundPoint, higherBoundPoint;
+    private double globalSumWeight;
 
     public Aquarium(int populationSize, double lowerBoundPoint, double higherBoundPoint, double maxWeight,
                     double individualStepStart, double individualStepFinish){
         this.individualStepStart = individualStepStart;
         this.individualStepFinish = individualStepFinish;
-        this.lowerBoundPoint = lowerBoundPoint;
-        this.higherBoundPoint = higherBoundPoint;
 
         for (int i = 0; i < populationSize; i++){
             population.add(new Fish(maxWeight, lowerBoundPoint, higherBoundPoint, individualStepStart));
         }
-        System.out.println("INIT FISH<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+        globalSumWeight = getSumWeight();
+        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>INIT");
         for (Fish fish : population){
             System.out.println(fish);
         }
     }
 
-    public void play(){
-        for (int i = 0; i < 100; i++) {
+    public void play(double counter){
+        for (int i = 0; i < counter; i++) {
 
             individualStageSwim();
             feeding();
@@ -33,8 +33,10 @@ public class Aquarium {
             CollectiveVolitiveSwim();
 
             for (Fish fish : population){
-                fish.setIndividualStep(fish.getIndividualStep() - (individualStepStart - individualStepFinish / 100));
-                fish.setPosition(fish.getSwimStatePos()[3]);
+                fish.setIndividualStep(fish.getIndividualStep() - (individualStepStart - individualStepFinish / counter));
+
+                Point [] position = fish.getPosition();
+                position[0] = position[3];
             }
 
             System.out.println("1 ITER<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
@@ -42,103 +44,84 @@ public class Aquarium {
                 System.out.println(fish);
             }
         }
-
-
-
     }
-
     public void individualStageSwim(){
         for (Fish fish : population) {
-            fish.move(lowerBoundPoint, higherBoundPoint);
+            fish.move();
         }
     }
-
     public void feeding(){
+        double maxDifFunc = getMaxDifFunc();
+        for (Fish fish : population) {
+            fish.setWeight(fish.getWeight() + fish.getDifFunc()/maxDifFunc);
+        }
+    }
+    public void CollectiveInstinctiveSwim(){
+        double sumDufFunc = getSumDifFunc();
+
+        Point m = new Point();
+        for (Fish fish : population){
+            m = m.sumPoints(fish.getPosition()[1].differencePoints(fish.getPosition()[0]).
+                    multiplyDoublePoint(fish.getDifFunc()));
+        }
+        m = m.decideDoublePoint(sumDufFunc);
+
+        for (Fish fish : population){
+            Point [] position = fish.getPosition();
+            position[2] = position[1].sumPoints(m);
+            fish.setPosition(position);
+        }
+    }
+    private void CollectiveVolitiveSwim(){
+        double sumWeight = getSumWeight();
+
+        Point barycentre = new Point();
+        for (Fish fish : population){
+            barycentre = barycentre.sumPoints(fish.getPosition()[2].multiplyDoublePoint(fish.getWeight()));
+        }
+        barycentre = barycentre.decideDoublePoint(sumWeight);
+
+        for (Fish fish : population){
+            Point [] position = fish.getPosition();
+            double collStep = fish.getIndividualStep() * 2;
+
+            if (sumWeight > globalSumWeight){
+                position[3] = position[2].sumDoublePoint(collStep).multiplyDoublePoint(Math.random()).differencePoints
+                ((position[2].differencePoints(barycentre).decideDoublePoint(position[2].getDistance(barycentre))));
+            } else {
+                position[3] = position[2].sumDoublePoint(collStep).multiplyDoublePoint(Math.random()).sumPoints
+                ((position[2].differencePoints(barycentre).decideDoublePoint(position[2].getDistance(barycentre))));
+            }
+            globalSumWeight = sumWeight;
+
+            fish.setPosition(position);
+        }
+    }
+    public double getSumDifFunc(){
+        double sumDifFunc = 0;
+        for (Fish fish : population){
+            sumDifFunc += fish.getDifFunc();
+        }
+        return sumDifFunc;
+    }
+    public double getMaxDifFunc(){
         double maxDifFunc = 0;
         for (Fish fish : population){
             if (fish.getDifFunc() > maxDifFunc){
                 maxDifFunc = fish.getDifFunc();
             }
         }
-        for (Fish fish : population) {
-            fish.setWeight(fish.getWeight() + fish.getDifFunc()/maxDifFunc);
-        }
+        return maxDifFunc;
     }
-
-    public void CollectiveInstinctiveSwim(){
-        double sumDufFunc = 0;
-        for (Fish fish : population){
-            sumDufFunc += fish.getDifFunc();
-        }
-
-        double x = 0;
-        for (Fish fish : population){
-            Vector<Double> swimStatePos0 = fish.getSwimStatePos()[0];
-            Vector<Double> swimStatePos1 = fish.getSwimStatePos()[1];
-
-            x += (swimStatePos1.get(0) - swimStatePos0.get(0)) * fish.getDifFunc();
-        }
-        double y = 0;
-        for (Fish fish : population){
-            Vector<Double> swimStatePos0 = fish.getSwimStatePos()[0];
-            Vector<Double> swimStatePos1 = fish.getSwimStatePos()[1];
-
-            y += (swimStatePos1.get(1) - swimStatePos0.get(1)) * fish.getDifFunc();
-        }
-
-        double m1 = x/sumDufFunc;
-        double m2 = y/sumDufFunc;
-
-        for (Fish fish : population){
-            Vector<Double>[] swimStatePos = fish.getSwimStatePos();
-
-            Vector<Double> newPos = new Vector<>();
-            newPos.add(swimStatePos[1].get(0) + m1);
-            newPos.add(swimStatePos[1].get(1) + m2);
-
-            swimStatePos[2] = newPos;
-            fish.setSwimStatePos(swimStatePos);
-        }
-    }
-    private void CollectiveVolitiveSwim(){
+    public double getSumWeight(){
         double sumWeight = 0;
         for (Fish fish : population){
             sumWeight += fish.getWeight();
         }
-        double x = 0;
-        for (Fish fish : population){
-            Vector<Double> swimStatePos = fish.getSwimStatePos()[2];
-            x += swimStatePos.get(0) * fish.getWeight();
-        }
-        double y = 0;
-        for (Fish fish : population){
-            Vector<Double> swimStatePos = fish.getSwimStatePos()[2];
-            x += swimStatePos.get(1) * fish.getWeight();
-        }
-
-        double barycentreX = x/sumWeight;
-        double barycentreY = y/sumWeight;
-
-        for (Fish fish : population){
-            Vector<Double>[] swimStatePos = fish.getSwimStatePos();
-            double collStep = fish.getIndividualStep() * 2;
-
-            double euclidDist = Math.sqrt(Math.pow(Math.abs(swimStatePos[2].get(0) - barycentreX), 2)
-                    + Math.pow(Math.abs(swimStatePos[2].get(1) - barycentreY), 2));
-
-            Vector<Double> newPos = new Vector<>();
-            newPos.add(swimStatePos[2].get(0) + collStep * Math.random()
-                    * (swimStatePos[2].get(0) - barycentreX) / euclidDist);
-
-            newPos.add(swimStatePos[2].get(1) + collStep * Math.random()
-                    * (swimStatePos[2].get(1) - barycentreY) / euclidDist);
-
-            swimStatePos[3] = newPos;
-            fish.setSwimStatePos(swimStatePos);
-        }
+        return sumWeight;
     }
-
     public List<Fish> getPopulation() {
         return population;
     }
+
 }
