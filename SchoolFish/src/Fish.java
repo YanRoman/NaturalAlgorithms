@@ -5,7 +5,8 @@ public class Fish {
     private double weight;
     private double individualStep;
     private double difFunc;
-    private double lowerBoundPoint, higherBoundPoint;
+    private final double lowerBoundPoint;
+    private final double higherBoundPoint;
 
     public Fish(double maxWeight, double lowerBoundPoint, double higherBoundPoint, double individualStepStart){
         this.lowerBoundPoint = lowerBoundPoint;
@@ -13,6 +14,7 @@ public class Fish {
         individualStep = individualStepStart;
         weight = maxWeight/2;
         position[0] = new Point(lowerBoundPoint, higherBoundPoint);
+        difFunc = 0;
     }
 
     public void move(){
@@ -21,7 +23,7 @@ public class Fish {
         if (func(position[0].sumDoublePoint(rand)) < func(position[0]) &&
                 position[0].sumDoublePoint(rand).inRange(lowerBoundPoint, higherBoundPoint)){
 
-            difFunc = Math.abs(func(position[0]) - func(position[0].sumDoublePoint(rand)));
+            difFunc = func(position[0]) - func(position[0].sumDoublePoint(rand));
             position[1] = position[0].sumDoublePoint(rand);
         } else {
             position[1] = position[0];
@@ -58,6 +60,10 @@ public class Fish {
 
     public double getDifFunc() {
         return difFunc;
+    }
+
+    public void setDifFunc(double difFunc) {
+        this.difFunc = difFunc;
     }
 
     @Override

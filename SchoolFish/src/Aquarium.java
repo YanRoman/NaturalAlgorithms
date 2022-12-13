@@ -32,16 +32,16 @@ public class Aquarium {
             CollectiveInstinctiveSwim();
             CollectiveVolitiveSwim();
 
-            for (Fish fish : population){
-                fish.setIndividualStep(fish.getIndividualStep() - (individualStepStart - individualStepFinish / counter));
-
-                Point [] position = fish.getPosition();
-                position[0] = position[3];
-            }
-
             System.out.println("1 ITER<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
             for (Fish fish : population){
                 System.out.println(fish);
+            }
+            for (Fish fish : population){
+                fish.setIndividualStep(fish.getIndividualStep() - (individualStepStart / counter));
+
+                Point [] position = fish.getPosition();
+                position[0] = position[3];
+                fish.setDifFunc(1);
             }
         }
     }
@@ -57,14 +57,14 @@ public class Aquarium {
         }
     }
     public void CollectiveInstinctiveSwim(){
-        double sumDufFunc = getSumDifFunc();
-
+        double sumDifFunc = getSumDifFunc();
+        if (sumDifFunc == 0) return;
         Point m = new Point();
         for (Fish fish : population){
             m = m.sumPoints(fish.getPosition()[1].differencePoints(fish.getPosition()[0]).
                     multiplyDoublePoint(fish.getDifFunc()));
         }
-        m = m.decideDoublePoint(sumDufFunc);
+        m = m.decideDoublePoint(sumDifFunc);
 
         for (Fish fish : population){
             Point [] position = fish.getPosition();
@@ -78,22 +78,42 @@ public class Aquarium {
         Point barycentre = new Point();
         for (Fish fish : population){
             barycentre = barycentre.sumPoints(fish.getPosition()[2].multiplyDoublePoint(fish.getWeight()));
+            //System.out.println("POSITION = " + fish.getPosition()[2]);
+           // System.out.println("WEIGHT = " + fish.getWeight());
         }
         barycentre = barycentre.decideDoublePoint(sumWeight);
+        System.out.println(barycentre);
 
         for (Fish fish : population){
             Point [] position = fish.getPosition();
             double collStep = fish.getIndividualStep() * 2;
 
-            if (sumWeight > globalSumWeight){
-                position[3] = position[2].sumDoublePoint(collStep).multiplyDoublePoint(Math.random()).differencePoints
-                ((position[2].differencePoints(barycentre).decideDoublePoint(position[2].getDistance(barycentre))));
-            } else {
-                position[3] = position[2].sumDoublePoint(collStep).multiplyDoublePoint(Math.random()).sumPoints
-                ((position[2].differencePoints(barycentre).decideDoublePoint(position[2].getDistance(barycentre))));
-            }
-            globalSumWeight = sumWeight;
+           // System.out.println("POS[2] = " + position[2]);
 
+
+           // System.out.println();
+           // System.out.println("sumWeight: " + sumWeight);
+           // System.out.println("gloablSumWeight: " + globalSumWeight);
+
+            Point point = position[2].differencePoints(barycentre);
+            if (sumWeight > globalSumWeight){
+
+             //   System.out.println("POINT: " + point);
+                point = point.decideDoublePoint(position[2].getDistance(barycentre));
+               // System.out.println("POINT: " + point);
+                point = point.multiplyDoublePoint(Math.random()).multiplyDoublePoint(collStep);
+               // System.out.println("POINT: " + point);
+                position[3] = position[2].differencePoints(point);
+               // System.out.println("POS[3] = " + position[3]);
+            } else {
+
+                point = point.decideDoublePoint(position[2].getDistance(barycentre));
+                point = point.multiplyDoublePoint(Math.random()).multiplyDoublePoint(collStep);
+                position[3] = position[2].sumPoints(point);
+
+            }
+
+            globalSumWeight = sumWeight;
             fish.setPosition(position);
         }
     }
@@ -125,3 +145,19 @@ public class Aquarium {
     }
 
 }
+
+/**
+ * 953,975
+ * 1071,975
+ * 939,375
+ * 1573,5
+ * 494,15
+ * 5032,975
+ *
+ * 1501,6
+ * 2356,5
+ * -158,5
+ * 1674,175
+ * 2411,575
+ * 7785,35
+ */
